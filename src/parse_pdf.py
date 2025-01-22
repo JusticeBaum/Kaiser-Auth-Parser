@@ -1,6 +1,7 @@
 import os
 import sys, pathlib, pymupdf
 import gspread
+from gspread_formatting import *
 from referral import Referral
 
 # Convert pdf text into txt format
@@ -33,7 +34,7 @@ def write(sheet, row_number, ref):
     # Batch update the sheet
     data = [{"range": update["range"], "values": update["values"]} for update in cell_updates]
     # sheet.batch_update(data, value_input_options = 'RAW')
-    sheet.batch_update(data)
+    sheet.batch_update(data, value_input_option='RAW')
 
 def main():
     # Open intake spreadsheet

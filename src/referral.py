@@ -64,6 +64,8 @@ class Referral(object):
         tokenized = content[1].split(' ')
         name = f"{tokenized[1]} {tokenized[0]}".replace(",", "")
         mrn = tokenized[len(tokenized) - 1].strip().replace(")","")
+        if "<" in mrn:
+            mrn = "NEEDS MANUAL REVIEW"
         return name,mrn
 
     # Return all HCPCS codes in the document
