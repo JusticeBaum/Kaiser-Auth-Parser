@@ -1,6 +1,7 @@
+import os
 import sys, pathlib, pymupdf
 import gspread
-from src.referral import Referral
+from referral import Referral
 
 # Convert pdf text into txt format
 def pdf_to_txt(fname):
@@ -31,6 +32,7 @@ def write(sheet, row_number, ref):
 
     # Batch update the sheet
     data = [{"range": update["range"], "values": update["values"]} for update in cell_updates]
+    # sheet.batch_update(data, value_input_options = 'RAW')
     sheet.batch_update(data)
 
 def main():
@@ -50,6 +52,8 @@ def main():
         if last_empty_row == 0:
             raise ValueError("Unable to find writeable row")
         write(sh, last_empty_row, ref)
+    
+    os.remove(f"{fname}.txt")
 
 #TODO Generalize for denials as well
 

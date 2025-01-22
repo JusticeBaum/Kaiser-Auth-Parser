@@ -28,12 +28,12 @@ class Referral(object):
     
     # Construct Referral object from content
     def from_file(content):
-            referral_number = Referral.extract_referral_num(content)
-            date_received = Referral.extract_received_date(content)
-            urgency = Referral.extract_urgency(content)
             auth_status = Referral.extract_auth_status(content)
+            referral_number = Referral.extract_referral_num(content)
+            date_received = Referral.extract_received_date(content, auth_status)
+            urgency = Referral.extract_urgency(content)
             name_mrn = Referral.extract_patient_name_mrn(content)
-            dob = Referral.extract_dob(content)
+            dob = Referral.extract_dob(content, auth_status)
             codes = Referral.extract_proc_codes(content)
 
             return Referral(referral_number, date_received, urgency, auth_status, name_mrn[0], name_mrn[1], dob, codes)
@@ -43,9 +43,13 @@ class Referral(object):
         return content[0].split(' ')[2].strip()
 
     # Return date of receipt
-    def extract_received_date(content):
+    def extract_received_date(content, auth_status):
         #TODO: Make this a more general search like the DoB one
-        return content[8].strip()
+        match auth_status:
+            case AuthState.AUTHORIZED:
+                return content[8].strip()
+            case AuthState.DENIED:
+                return content[9].strip()
     
     # Returns whether 'tis urgent or not 
     def extract_urgency(content):
@@ -74,15 +78,27 @@ class Referral(object):
 
     # Return patient's date of birth
     #TODO: Doesn't work for ...266?
-    def extract_dob(content):
+    def extract_dob(content, auth_status):
         dob = None
-        # Demo. info starts around this line and can vary based on numer of HCPCS
-        # So can't just fetch a static line
-        for line_number, line in enumerate(itertools.islice(content, 150, None), start=0):
-                if line_number > 0 and 'Birth:' in previous_line:
-                    dob = line.strip()
-                    break
-                previous_line = line
+        match auth_status:
+            case AuthState.AUTHORIZED:
+                # Demo. info starts around this line and can vary based on numer of HCPCS
+                # So can't just fetch a static line
+                for line_number, line in enumerate(itertools.islice(content, 150, None), start=0):
+                        if line_number > 0 and 'Birth: ' in previous_line:
+                            dob = line.strip()
+                            break
+                        previous_line = line
+                return dob
+            case AuthState.DENIED:
+                for line_number, line in enumerate(itertools.islice(content, 150, None), start = 0):
+                    if "Birth:" in line:
+                        dob = line
+                splitdob = dob.split(":")
+                dob = splitdob[1].strip()
+                return dob
+            case _:
+                return dob
         return dob
     
     # Return auth approved or denied?
