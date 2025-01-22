@@ -1,6 +1,6 @@
 import sys, pathlib, pymupdf
 import gspread
-from referral import Referral
+from src.referral import Referral
 
 # Convert pdf text into txt format
 def pdf_to_txt(fname):
